@@ -32,7 +32,7 @@ class KafkaCreds(MainConf):
     user: str = Field(..., env="KAFKA_USER")
     password: str = Field(..., env="KAFKA_PASSWORD")
     topic: str = Field(..., env='TOPIC')
-    bootstrap_servers: list = os.environ.get('KAFKA_SERVERS').split()
+    bootstrap_servers: list = Field(..., env='KAFKA_SERVERS').split()
     ssl_cafile: str = Field(..., env='KAFKA_CAFILE')
 
 

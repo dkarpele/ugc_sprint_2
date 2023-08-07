@@ -1,5 +1,7 @@
 import logging
 import time
+from typing import List
+
 from clickhouse_driver import Client
 from clickhouse_driver.errors import Error
 from kafka import KafkaConsumer
@@ -13,7 +15,7 @@ class ClickHouseLoader:
         self.consumer = consumer
         self.clickhouse = clickhouse
         self.start_time = time.time()
-        self.cache = []
+        self.cache: List[ClickHouseModel] = []
 
     @backoff(service='Kafka')
     def get_data(self, chunk_size: int = 1000) -> None:
