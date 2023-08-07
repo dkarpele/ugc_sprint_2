@@ -30,7 +30,8 @@ class Kafka:
             await self.producer.send_and_wait(
                 topic=self.topic,
                 key='%'.join([str(user_id), str(movie_id)]).encode('utf-8'),
-                value='%'.join([str(begin_time), str(end_time)]).encode('utf-8')
+                value='%'.join([str(begin_time), str(end_time)]).
+                encode('utf-8')
             )
         finally:
             await self.producer.stop()

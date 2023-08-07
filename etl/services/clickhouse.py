@@ -44,7 +44,7 @@ class ClickHouseLoader:
     @backoff(service='ClickHouse')
     def write_to_clickhouse(self, cache):
         insert_record = """
-        INSERT INTO user_viewed_frame (user_id, film_id, begin_time, end_time) 
+        INSERT INTO user_viewed_frame (user_id, film_id, begin_time, end_time)
         VALUES {data};
         """
         query = insert_record.format(
