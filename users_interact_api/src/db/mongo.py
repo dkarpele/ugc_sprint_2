@@ -9,5 +9,5 @@ class Mongo:
 mongo: Mongo | None = None
 
 
-async def get_mongo() -> Mongo:
+async def get_mongo() -> Mongo | None:
     return mongo
