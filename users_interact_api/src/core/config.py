@@ -34,3 +34,11 @@ class KafkaCreds(MainConf):
 
 
 kafka_settings = KafkaCreds()
+
+
+class MongoCreds(MainConf):
+    host: str = Field(..., env="MONGO_HOST")
+    port: str = Field(..., env="MONGO_PORT")
+
+
+mongo_settings = MongoCreds()
