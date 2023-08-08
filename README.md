@@ -22,7 +22,7 @@ ETL process to transfer from Kafka (running in Yandex Cloud) to ClickHouse (dock
 
 Research which storage to use: Vertica (docker) or ClickHouse (docker)
 
-#### [users_analyze_api](users_analyze_api)
+#### [users_interact_api](users_interact_api)
 
 API endpoint (docker) sends data to Kafka.
 - POST http://127.0.0.1/api/v1/views/send-movie-time - create user's viewed timeframe for movie

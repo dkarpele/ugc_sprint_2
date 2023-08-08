@@ -55,7 +55,7 @@ jobs:
           python3 -m pip install types-redis
       - name: Check src
         run: |
-          mypy --ignore-missing-imports ./users_analyze_api
+          mypy --ignore-missing-imports ./users_interact_api
 
   mypy_check_etl:
     runs-on: ubuntu-latest

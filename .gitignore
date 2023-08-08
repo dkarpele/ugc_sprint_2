@@ -1,3 +1,3 @@
 /.env
 /etl/.env
-/users_analyze_api/src/.env
+/users_interact_api/src/.env

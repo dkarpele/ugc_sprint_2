@@ -10,13 +10,13 @@ services:
     volumes:
       - /usr/local/share/ca-certificates/Yandex/YandexInternalRootCA.crt:${APP_HOME}/YandexInternalRootCA.crt:rw
     depends_on:
-      - users_analyze_api
+      - users_interact_api
 #        condition: service_healthy
       - clickhouse-node1
 #        condition: service_healthy
 
-  users_analyze_api:
-    build: ./users_analyze_api/src/
+  users_interact_api:
+    build: ./users_interact_api/src/
     env_file:
       - .env
     networks:
