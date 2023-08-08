@@ -4,7 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
 
-from models.views import View
+from models.ugc import View
 from services.database import KafkaDep
 from services.token import security_jwt, get_user_id
 
