@@ -12,7 +12,7 @@ def etl_clickhouse() -> None:
     clickhouse_loader = ClickHouseLoader(
         consumer=KafkaConsumer(
             kafka_settings.topic,
-            bootstrap_servers=kafka_settings.bootstrap_servers,
+            bootstrap_servers=kafka_settings.bootstrap_servers.split(),
             # auto_offset_reset='earliest',
             # enable_auto_commit=False,
             security_protocol="SASL_SSL",

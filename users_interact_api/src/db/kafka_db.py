@@ -12,7 +12,7 @@ class Kafka:
         context = SSLContext()
         context.load_verify_locations(cafile=kafka_settings.ssl_cafile)
         self.producer = AIOKafkaProducer(
-            bootstrap_servers=kafka_settings.bootstrap_servers,
+            bootstrap_servers=kafka_settings.bootstrap_servers.split(),
             security_protocol="SASL_SSL",
             sasl_mechanism="SCRAM-SHA-512",
             sasl_plain_username=kafka_settings.user,
