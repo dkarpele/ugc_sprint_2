@@ -33,3 +33,24 @@ async def set_data(
     db_name = mongo_settings.db
     db = db.client[db_name]
     await db[collection].insert_one(jsonable_encoder(document))
+
+
+async def get_data(
+        db: AsyncIOMotorClient,
+        query: dict | str,
+        collection: str,
+) -> list:
+    """Get doc from Mongo db
+    Args:
+        :param db: MongoDB
+        :param query: Request to find
+        :param collection: Collection name
+    """
+    db_name = mongo_settings.db
+    db = db.client[db_name]
+    res = db[collection].find(query)
+    documents_list = []
+    async for document in res:
+        documents_list.append(document)
+
+    return documents_list
