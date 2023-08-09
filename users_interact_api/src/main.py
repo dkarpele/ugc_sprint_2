@@ -16,7 +16,7 @@ async def startup():
     )
 
 
-@asynccontextmanager  # type: ignore
+@asynccontextmanager  # type: ignore[arg-type]
 async def lifespan(app: FastAPI):
     await startup()
 
