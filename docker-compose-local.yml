@@ -1,20 +1,20 @@
 version: '3'
 services:
-  users_interact_api:
-    build: ./users_interact_api/src/
-    env_file:
-      - .env
-    networks:
-      - backend
-    expose:
-      - "8000"
-    volumes:
-      - /usr/local/share/ca-certificates/Yandex/YandexInternalRootCA.crt:${APP_HOME}/YandexInternalRootCA.crt:rw
-    healthcheck:
-      test: [ 'CMD', 'curl', '-f', 'http://localhost:8000' ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+#  users_interact_api:
+#    build: ./users_interact_api/src/
+#    env_file:
+#      - .env
+#    networks:
+#      - backend
+#    expose:
+#      - "8000"
+#    volumes:
+#      - /usr/local/share/ca-certificates/Yandex/YandexInternalRootCA.crt:${APP_HOME}/YandexInternalRootCA.crt:rw
+#    healthcheck:
+#      test: [ 'CMD', 'curl', '-f', 'http://localhost:8000' ]
+#      interval: 5s
+#      timeout: 3s
+#      retries: 5
 
   mongo:
     image: mongo:latest
