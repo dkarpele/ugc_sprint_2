@@ -12,28 +12,28 @@ class View(Model):
     end_time: datetime
 
 
+class RequestModel(Model):
+    movie_id: UUID
+
+
 class LikesModel(Model):
     user_id: UUID
-    film_id: UUID
+    movie_id: UUID
     point: int
 
 
-class FilmAvgModel(Model):
-    film_id: UUID
-    avg_vote: float
+class MovieAvgModel(Model):
+    movie_id: UUID
+    avg_rating: float
 
 
 class ReviewModel(Model):
     review_id: UUID
     user_id: UUID
-    film_id: UUID
+    movie_id: UUID
     review: str
     date: datetime = Field(default_factory=datetime.now)
     likes: int | None = None
-
-
-class BookmarksRequestModel(Model):
-    movie_id: UUID
 
 
 class BookmarksResponseModel(Model):

@@ -4,7 +4,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
-from api.v1 import views, bookmarks
+from api.v1 import views, bookmarks, likes
 from core.config import settings, mongo_settings
 from core.logger import LOGGING
 from db import mongo
@@ -39,6 +39,8 @@ app = FastAPI(
 app.include_router(views.router, prefix='/api/v1/views', tags=['views'])
 app.include_router(bookmarks.router, prefix='/api/v1/bookmarks',
                    tags=['bookmarks'])
+app.include_router(likes.router, prefix='/api/v1/likes',
+                   tags=['likes'])
 
 if __name__ == '__main__':
     uvicorn.run(
