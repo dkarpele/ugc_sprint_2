@@ -2,8 +2,10 @@ from typing import Annotated
 
 from fastapi import APIRouter, status, HTTPException, Depends
 
-from models.ugc import RequestModel, LikesModel, MovieAvgModel
-from services.mongo import MongoDep, set_data, delete_data, get_aggregated
+from models.ugc import RequestModel, LikesModel, MovieAvgModel, \
+    LikesCountMovieModel
+from services.mongo import MongoDep, set_data, delete_data, get_aggregated, \
+    get_count, get_data
 from services.token import security_jwt, get_user_id
 
 # Объект router, в котором регистрируем обработчики
@@ -58,7 +60,7 @@ async def set_dislike(token: Annotated[str, Depends(security_jwt)],
 @router.get('/avg-movie-rating',
             response_model=MovieAvgModel,
             status_code=status.HTTP_200_OK,
-            description="получение средней оценки за фильм",
+            description="просмотр средней пользовательской оценки фильма",
             response_description="movie_id, rating")
 async def average_movie_rating(movie: Annotated[RequestModel,
                                                 Depends(RequestModel)],
@@ -89,6 +91,40 @@ async def average_movie_rating(movie: Annotated[RequestModel,
     first_res['movie_id'] = first_res.pop('_id')
     first_res['avg_rating'] = round(first_res['avg_rating'], 1)
     return MovieAvgModel(**first_res)
+
+
+@router.get('/likes-dislikes-count-movie',
+            response_model=LikesCountMovieModel,
+            status_code=status.HTTP_200_OK,
+            description="просмотр количества лайков и дизлайков у фильма",
+            response_description="movie_id, likes_count, dislikes_count")
+async def likes_count_movie(movie: Annotated[RequestModel,
+                                             Depends(RequestModel)],
+                            mongo: MongoDep) -> LikesCountMovieModel:
+
+    films = await get_data(mongo,
+                           {"movie_id": movie.movie_id},
+                           collection)
+    if len(films) == 0:
+        res = {"movie_id": movie.movie_id,
+               'likes_count': 0,
+               'dislikes_count': 0}
+        return LikesCountMovieModel(**res)
+
+    likes_count_query = {"movie_id": movie.movie_id,
+                         "point": 10}
+    likes_count = await get_count(mongo,
+                                  likes_count_query,
+                                  collection)
+    dislikes_count_query = {"movie_id": movie.movie_id,
+                            "point": 0}
+    dislikes_count = await get_count(mongo,
+                                     dislikes_count_query,
+                                     collection)
+    res = {"movie_id": movie.movie_id,
+           'likes_count': likes_count,
+           'dislikes_count': dislikes_count}
+    return LikesCountMovieModel(**res)
 
 
 @router.delete('/like',

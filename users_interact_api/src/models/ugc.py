@@ -22,6 +22,12 @@ class LikesModel(Model):
     point: int
 
 
+class LikesCountMovieModel(Model):
+    movie_id: UUID
+    likes_count: int
+    dislikes_count: int
+
+
 class MovieAvgModel(Model):
     movie_id: UUID
     avg_rating: float

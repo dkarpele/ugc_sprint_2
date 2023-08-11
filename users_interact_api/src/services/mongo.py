@@ -52,7 +52,7 @@ async def get_data(
         db: AsyncIOMotorClient,
         query: dict | str,
         collection: str,
-        projection: str = None
+        projection: str | None = None
 ) -> list:
     """Get doc from Mongo db
     Args:
@@ -107,7 +107,7 @@ async def get_aggregated(
         query: dict | str | list,
         collection: str,
 ) -> list:
-    """Get doc from Mongo db
+    """Get aggregated doc from Mongo db
     Args:
         :param db: MongoDB
         :param query: Request to find
@@ -119,3 +119,21 @@ async def get_aggregated(
     docs = await cursor.to_list(None)
 
     return docs
+
+
+async def get_count(
+        db: AsyncIOMotorClient,
+        query: dict | str | list,
+        collection: str,
+) -> list:
+    """Get doc's count from Mongo db
+    Args:
+        :param db: MongoDB
+        :param query: Request to find
+        :param collection: Collection name
+    """
+    db_name = mongo_settings.db
+    db = db.client[db_name]
+    count = await db[collection].count_documents(jsonable_encoder(query),)
+
+    return count
