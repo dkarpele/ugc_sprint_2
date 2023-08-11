@@ -4,6 +4,7 @@ services:
   mongors1n1:
     container_name: mongors1n1
     image: mongo
+    privileged: true
     command: mongod --shardsvr --replSet mongors1 --dbpath /data/db --port 27017
     ports:
       - 27017:27017
@@ -18,6 +19,7 @@ services:
   mongors1n2:
     container_name: mongors1n2
     image: mongo
+    privileged: true
     command: mongod --shardsvr --replSet mongors1 --dbpath /data/db --port 27017
     ports:
       - 27027:27017
@@ -32,6 +34,7 @@ services:
   mongors1n3:
     container_name: mongors1n3
     image: mongo
+    privileged: true
     command: mongod --shardsvr --replSet mongors1 --dbpath /data/db --port 27017
     ports:
       - 27037:27017
@@ -46,6 +49,7 @@ services:
   mongors2n1:
     container_name: mongors2n1
     image: mongo
+    privileged: true
     command: mongod --shardsvr --replSet mongors2 --dbpath /data/db --port 27017
     ports:
       - 27047:27017
@@ -60,6 +64,7 @@ services:
   mongors2n2:
     container_name: mongors2n2
     image: mongo
+    privileged: true
     command: mongod --shardsvr --replSet mongors2 --dbpath /data/db --port 27017
     ports:
       - 27057:27017
@@ -74,6 +79,7 @@ services:
   mongors2n3:
     container_name: mongors2n3
     image: mongo
+    privileged: true
     command: mongod --shardsvr --replSet mongors2 --dbpath /data/db --port 27017
     ports:
       - 27067:27017
@@ -88,6 +94,7 @@ services:
   mongocfg1:
     container_name: mongocfg1
     image: mongo
+    privileged: true
     command: mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017
     expose:
       - "27017"
@@ -100,6 +107,7 @@ services:
   mongocfg2:
     container_name: mongocfg2
     image: mongo
+    privileged: true
     command: mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017
     expose:
       - "27017"
@@ -112,6 +120,7 @@ services:
   mongocfg3:
     container_name: mongocfg3
     image: mongo
+    privileged: true
     command: mongod --configsvr --replSet mongors1conf --dbpath /data/db --port 27017
     expose:
       - "27017"
@@ -124,10 +133,11 @@ services:
   mongos1:
     container_name: mongos1
     image: mongo
+    privileged: true
     depends_on:
       - mongocfg1
       - mongocfg2
-    command: mongos --configdb mongors1conf/mongocfg1:27017,mongocfg2:27017,mongocfg3:27017 --port 27017
+    command: mongos --configdb mongors1conf/mongocfg1:27017,mongocfg2:27017,mongocfg3:27017 --port 27017 --bind_ip_all
     ports:
       - 27019:27017
     expose:
@@ -140,10 +150,11 @@ services:
   mongos2:
     container_name: mongos2
     image: mongo
+    privileged: true
     depends_on:
       - mongocfg1
       - mongocfg2
-    command: mongos --configdb mongors1conf/mongocfg1:27017,mongocfg2:27017,mongocfg3:27017 --port 27017
+    command: mongos --configdb mongors1conf/mongocfg1:27017,mongocfg2:27017,mongocfg3:27017 --port 27017 --bind_ip_all
     ports:
       - 27020:27017
     expose:

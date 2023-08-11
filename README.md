@@ -2,7 +2,7 @@
 
 ### Installation
 
-1. Clone [repo](https://github.com/dkarpele/ugc_sprint_1).
+1. Clone [repo](https://github.com/dkarpele/ugc_sprint_2).
 2. Create ```.env``` file according to ```.env.example```.
 3. Launch the project ```docker-compose up --build```.
 
@@ -20,8 +20,8 @@ ETL process to transfer from Kafka (running in Yandex Cloud) to ClickHouse (dock
 
 #### [research](research)
 
-Research which storage to use: Vertica (docker) or ClickHouse (docker)
-
+Research which storage to use: Vertica (docker), ClickHouse (docker) or MongoDB (docker)
+mongosh mongodb://"$MONGO_INITDB_ROOT_USERNAME":"$MONGO_INITDB_ROOT_PASSWORD"@localhost:27017/"$MONGO_INITDB_DATABASE"
 #### [users_interact_api](users_interact_api)
 
 API endpoint (docker) sends data to Kafka.

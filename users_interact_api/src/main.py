@@ -12,8 +12,9 @@ from db import mongo
 
 async def startup():
     mongo.mongo = mongo.Mongo(
-        f'mongodb://{mongo_settings.user}:{mongo_settings.password}'
-        f'@{mongo_settings.host}:{mongo_settings.port}'
+        f'mongodb://'
+        f'{mongo_settings.user}:{mongo_settings.password}@'
+        f'{mongo_settings.host}:{mongo_settings.port}'
     )
 
 
