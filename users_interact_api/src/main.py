@@ -4,7 +4,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 
-from api.v1 import views
+from api.v1 import views, bookmarks, likes
 from core.config import settings, mongo_settings
 from core.logger import LOGGING
 from db import mongo
@@ -12,14 +12,19 @@ from db import mongo
 
 async def startup():
     mongo.mongo = mongo.Mongo(
-        f'mongodb://{mongo_settings.host}:{mongo_settings.port}'
+        f'mongodb://{mongo_settings.user}:{mongo_settings.password}'
+        f'@{mongo_settings.host}:{mongo_settings.port}'
     )
 
 
-@asynccontextmanager  # type: ignore
+async def shutdown():
+    pass
+
+
+@asynccontextmanager  # type: ignore[arg-type]
 async def lifespan(app: FastAPI):
     await startup()
-
+    yield
 
 app = FastAPI(
     title="Api to analyze users behaviour",
@@ -27,11 +32,15 @@ app = FastAPI(
     version="1.0.0",
     docs_url='/api/openapi-user-analyze',
     openapi_url='/api/openapi-user-analyze.json',
-    default_response_class=ORJSONResponse)
+    default_response_class=ORJSONResponse,
+    lifespan=lifespan,)
 
 
 app.include_router(views.router, prefix='/api/v1/views', tags=['views'])
-
+app.include_router(bookmarks.router, prefix='/api/v1/bookmarks',
+                   tags=['bookmarks'])
+app.include_router(likes.router, prefix='/api/v1/likes',
+                   tags=['likes'])
 
 if __name__ == '__main__':
     uvicorn.run(

@@ -1,6 +1,7 @@
 from datetime import datetime
-from pydantic import Field, BaseModel
 from uuid import UUID
+
+from pydantic import Field
 
 from models.model import Model
 
@@ -11,26 +12,36 @@ class View(Model):
     end_time: datetime
 
 
+class RequestModel(Model):
+    movie_id: UUID
+
+
 class LikesModel(Model):
-    user_id: str
-    film_id: str
+    user_id: UUID
+    movie_id: UUID
     point: int
 
 
-class FilmAvgModel(Model):
-    film_id: str
-    avg_vote: float
+class LikesCountMovieModel(Model):
+    movie_id: UUID
+    likes_count: int
+    dislikes_count: int
+
+
+class MovieAvgModel(Model):
+    movie_id: UUID
+    avg_rating: float
 
 
 class ReviewModel(Model):
     review_id: UUID
-    user_id: str
-    film_id: str
+    user_id: UUID
+    movie_id: UUID
     review: str
     date: datetime = Field(default_factory=datetime.now)
     likes: int | None = None
 
 
-class BookmarksModel(BaseModel):
-    user_id: str
-    film_id: str
+class BookmarksResponseModel(Model):
+    user_id: UUID
+    movie_id: UUID
