@@ -39,8 +39,8 @@ kafka_settings = KafkaCreds()
 class MongoCreds(MainConf):
     host: str = Field(..., env="MONGO_HOST")
     port: str = Field(..., env="MONGO_PORT")
-    user: str = Field(..., env="MONGO_INITDB_ROOT_USERNAME")
-    password: str = Field(..., env="MONGO_INITDB_ROOT_PASSWORD")
+    user: str = Field(default=None, env="MONGO_INITDB_ROOT_USERNAME")
+    password: str = Field(default=None, env="MONGO_INITDB_ROOT_PASSWORD")
     db: str = Field(..., env="MONGO_INITDB_DATABASE")
 
 
