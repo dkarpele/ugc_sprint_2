@@ -11,10 +11,17 @@ from db import mongo
 
 
 async def startup():
-    mongo.mongo = mongo.Mongo(
-        f'mongodb://{mongo_settings.user}:{mongo_settings.password}'
-        f'@{mongo_settings.host}:{mongo_settings.port}'
-    )
+    if mongo_settings.user and mongo_settings.password:
+        mongo.mongo = mongo.Mongo(
+            f'mongodb://'
+            f'{mongo_settings.user}:{mongo_settings.password}@'
+            f'{mongo_settings.host}:{mongo_settings.port}'
+        )
+    else:
+        mongo.mongo = mongo.Mongo(
+            f'mongodb://'
+            f'{mongo_settings.host}:{mongo_settings.port}'
+        )
 
 
 async def shutdown():
