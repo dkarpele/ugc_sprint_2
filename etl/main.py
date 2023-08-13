@@ -5,7 +5,16 @@ from kafka import KafkaConsumer
 
 from core.config import settings, kafka_settings
 from services.clickhouse import ClickHouseLoader
+import sentry_sdk
 
+sentry_sdk.init(
+  dsn="https://7f9167f41cae63cde0db1f217d884c37@o4505697103380480.ingest.sentry.io/4505697146699776",
+
+  # Set traces_sample_rate to 1.0 to capture 100%
+  # of transactions for performance monitoring.
+  # We recommend adjusting this value in production.
+  traces_sample_rate=1.0
+)
 
 def etl_clickhouse() -> None:
     """ETL from Kafka to ClickHouse"""
