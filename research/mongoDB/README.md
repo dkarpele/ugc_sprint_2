@@ -6,27 +6,13 @@
 4. `./mongo-cluster-config.sh`
 5. `python upload_from_file.py`
 
-Here we use `SELECT * FROM file` method to upload data to MongoDB from data.csv file created before. Thanks to multiprocessing upload is going for seconds not for minutes.
+Here we use `mongoimport` method to upload data to MongoDB from data.csv file created before. Thanks to multiprocessing upload is going for seconds not for minutes.
 
 ```commandline
-Upload chunk_size=100.000 rows to file in 1.9522244930267334 seconds
-Insert 10.000.000 (num_chunks=100, chunk_size=100.000) rows in 1.4755141735076904 seconds
-Insert speed: 6777298.503495453 rows/sec
-Total time: 3.427738666534424 sec
-```
-
-```commandline
-Upload chunk_size=10.000 rows to file in 0.18043851852416992 seconds
-Insert 10.000.000 (num_chunks=1000, chunk_size=10.000) rows in 1.8392279148101807 seconds
-Insert speed: 5437064.063391002 rows/sec
-Total time: 2.0196664333343506 sec
-```
-
-```commandline
-Upload chunk_size=1000 rows to file in 0.019498348236083984 seconds
-Insert 10.000.000 (num_chunks=10.000, chunk_size=1000) rows in 8.14340353012085 seconds
-Insert speed: 1227987.7772250834 rows/sec
-Total time: 8.162901878356934 sec
+Upload chunk_size=100000 rows to file in 0.8040897846221924 seconds for `likes`.
+Upload chunk_size=100000 rows to file in 0.48049306869506836 seconds for `bookmarks`.
+Insert 10000000 (num_chunks=100, chunk_size=100000) rows in 46.813364028930664 seconds for `likes` collection
+Total time: 47.617453813552856 sec
 ```
 
 ___
