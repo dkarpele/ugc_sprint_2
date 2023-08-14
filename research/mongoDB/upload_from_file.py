@@ -5,99 +5,120 @@ import uuid
 import multiprocessing as mp
 
 import docker
-
-from clickhouse_driver import Client
+from dotenv import load_dotenv
+from pymongo import MongoClient
 from faker import Faker
 
+load_dotenv()
 
-client = Client(host='localhost')
+
 docker_client = docker.from_env()
+container = docker_client.containers.get(os.environ.get('CONTAINER_NAME'))
+
+
+conn_info = f'mongodb://'\
+            f'{os.environ.get("ROOT_USERNAME")}:'\
+            f'{os.environ.get("ROOT_PASSWORD")}@'\
+            f'{os.environ.get("HOST")}:{os.environ.get("PORT")}'
+client = MongoClient(conn_info)
+db = client[os.environ.get('MONGO_INITDB_DATABASE')]
+
 fake: Faker = Faker()
 
+num_chunks = 1000
+chunk_size = 10_000
 
-def load_data_to_file(size):
-    filename = 'data.csv'
+
+def load_data_to_file(collection_name, collection_data):
+    db.drop_collection(collection_name)
+    db[collection_name].create_index([("user_id", 1)])
+    db[collection_name].create_index([("movie_id", 1)])
+    filename = f'{collection_name}.csv'
 
     start = time.time()
 
-    lines = ((f"'{uuid.uuid4()}',"
-              f"'{uuid.uuid4()}',"
-              f"{fake.random_int(min=0, max=1000)},"
-              f"'{fake.date_time_between(start_date='-1y', end_date='now')}'"
-              f"\n")
-             for _ in range(size))
     with open(filename, 'w') as file:
-        file.write(''.join(str(x) for x in lines))
+        file.write(''.join(str(x) for x in collection_data))
     end = time.time()
 
     with tarfile.open(f'{filename}' + '.tar', mode='w') as tar:
         tar.add(f'{filename}')
 
+    container.put_archive('/data/db/', open(
+        f'{os.getcwd()}/{collection_name}.csv.tar',
+        'rb').read())
+
+    print(f"Upload chunk_size={chunk_size} rows to file {filename} in "
+          f"{end - start} seconds for `{collection}`.")
     return end - start
 
 
-def prepare_db():
-    client.execute(
-        """
-        DROP TABLE IF EXISTS user_viewed_frame;
-        """
-    )
-    client.execute(
-        """
-        CREATE TABLE IF NOT EXISTS user_viewed_frame
-        (
-            user_id UUID,
-            film_id UUID,
-            viewed_frame Int64,
-            ts DateTime
-        ) engine=MergeTree()
-        ORDER BY (user_id, film_id, viewed_frame);
-        """
-    )
-
-
-def insert_data(chunks_amount=None) -> None:
-    if not os.path.isfile(f'{os.getcwd()}/data.csv'):
-        raise Exception('Create data.csv first!')
+def insert_data(collection_name='likes',
+                file_name='likes.csv',
+                fields='user_id,movie_id,point') -> None:
+    if not os.path.isfile(f'{os.getcwd()}/{file_name}'):
+        raise Exception(f'Create {file_name} first!')
     try:
-        client.execute(
-            "INSERT INTO user_viewed_frame "
-            "SELECT * FROM file("
-            "'data.csv', "
-            "'CSV', "
-            "'user_id UUID, film_id UUID, viewed_frame Int64, ts DateTime');"
-            )
+        container.exec_run(
+                  f'mongoimport {conn_info} '
+                  f'-d {os.environ.get("MONGO_INITDB_DATABASE")} '
+                  f'-c {collection_name} '
+                  f'--type=csv '
+                  f'--fields="{fields}" '
+                  f'--file=/data/db/{file_name}')
+
     except Exception as err:
         print(err)
 
 
 if __name__ == "__main__":
-    num_chunks = 1000
-    chunk_size = 10_000
     total_records = num_chunks * chunk_size
 
-    prepare_db()
+    # Likes file
+    collection = 'likes'
+    data = ((f"{uuid.uuid4()},"
+             f"{uuid.uuid4()},"
+             f"{fake.random_int(min=0, max=1) * 10}"
+             f"\n")
+            for _ in range(chunk_size))
+    elapsed_time_upload_to_file = load_data_to_file(collection,
+                                                    data)
 
-    elapsed_time_upload_to_file = load_data_to_file(chunk_size)
-    if elapsed_time_upload_to_file:
-        print(f"Upload chunk_size={chunk_size} rows to file in "
-              f"{elapsed_time_upload_to_file} seconds")
-
-    container = docker_client.containers.get('clickhouse')
-    container.put_archive('/var/lib/clickhouse/user_files/', open(
-        f'{os.getcwd()}/data.csv.tar',
-        'rb').read())
-
+    # Insert to likes collection
     start_time = time.time()
+    items = [('likes', 'likes.csv', 'user_id,movie_id,point')
+             for i in range(num_chunks)]
     with mp.Pool(mp.cpu_count()) as pool:
-        pool.map(insert_data, range(num_chunks))
-
+        pool.starmap(insert_data, items)
     end_time = time.time()
     elapsed_time = end_time - start_time
 
     print(f"Insert {total_records} (num_chunks={num_chunks}, "
           f"chunk_size={chunk_size}) rows in "
-          f"{elapsed_time} seconds")
-    insertion_speed = total_records / elapsed_time
-    print(f"Insert speed: {insertion_speed} rows/sec")
-    print(f"Total time: {elapsed_time + elapsed_time_upload_to_file} sec")
+          f"{elapsed_time} seconds for {collection} collection")
+    print(f"Total time: {elapsed_time + elapsed_time_upload_to_file}"
+          f" sec")
+
+    # Bookmarks file
+    collection = 'bookmarks'
+    data = ((f"{uuid.uuid4()},"
+             f"{uuid.uuid4()}"
+             f"\n")
+            for _ in range(chunk_size))
+    elapsed_time_upload_to_file = load_data_to_file(collection,
+                                                    data)
+
+    # Insert to bookmarks collection
+    start_time = time.time()
+    items = [('bookmarks', 'bookmarks.csv', 'user_id,movie_id')
+             for i in range(num_chunks)]
+    with mp.Pool(mp.cpu_count()) as pool:
+        pool.starmap(insert_data, items)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    print(f"Insert {total_records} (num_chunks={num_chunks}, "
+          f"chunk_size={chunk_size}) rows in "
+          f"{elapsed_time} seconds for {collection} collection")
+    print(f"Total time: {elapsed_time + elapsed_time_upload_to_file}"
+          f" sec")

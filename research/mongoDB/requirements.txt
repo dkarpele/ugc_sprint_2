@@ -1,2 +1,4 @@
+pymongo==4.4.1
+python-dotenv==1.0
 fake==0.8
 docker==6.1.3
