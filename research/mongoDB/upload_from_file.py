@@ -25,12 +25,14 @@ db = client[os.environ.get('MONGO_INITDB_DATABASE')]
 
 fake: Faker = Faker()
 
-num_chunks = 100
-chunk_size = 100_000
+num_chunks = 1000
+chunk_size = 10_000
 
 
 def load_data_to_file(collection_name, collection_data):
     db.drop_collection(collection_name)
+    db[collection_name].create_index([("user_id", 1)])
+    db[collection_name].create_index([("movie_id", 1)])
     filename = f'{collection_name}.csv'
 
     start = time.time()
@@ -46,20 +48,24 @@ def load_data_to_file(collection_name, collection_data):
         f'{os.getcwd()}/{collection_name}.csv.tar',
         'rb').read())
 
+    print(f"Upload chunk_size={chunk_size} rows to file {filename} in "
+          f"{end - start} seconds for `{collection}`.")
     return end - start
 
 
-def insert_data_likes(chunks_amount=None) -> None:
-    if not os.path.isfile(f'{os.getcwd()}/likes.csv'):
-        raise Exception('Create likes.csv first!')
+def insert_data(collection_name='likes',
+                file_name='likes.csv',
+                fields='user_id,movie_id,point') -> None:
+    if not os.path.isfile(f'{os.getcwd()}/{file_name}'):
+        raise Exception(f'Create {file_name} first!')
     try:
         container.exec_run(
                   f'mongoimport {conn_info} '
                   f'-d {os.environ.get("MONGO_INITDB_DATABASE")} '
-                  f'-c likes '
+                  f'-c {collection_name} '
                   f'--type=csv '
-                  f'--fields="user_id,movie_id,point" '
-                  f'--file=/data/db/likes.csv')
+                  f'--fields="{fields}" '
+                  f'--file=/data/db/{file_name}')
 
     except Exception as err:
         print(err)
@@ -68,55 +74,51 @@ def insert_data_likes(chunks_amount=None) -> None:
 if __name__ == "__main__":
     total_records = num_chunks * chunk_size
 
-    # Likes
+    # Likes file
     collection = 'likes'
-    data = ((f"'{uuid.uuid4()}',"
-             f"'{uuid.uuid4()}',"
+    data = ((f"{uuid.uuid4()},"
+             f"{uuid.uuid4()},"
              f"{fake.random_int(min=0, max=1) * 10}"
-             f"\n")
-            for _ in range(chunk_size))
-    elapsed_time_upload_to_file_likes = load_data_to_file(collection,
-                                                    data)
-    if elapsed_time_upload_to_file_likes:
-        print(f"Upload chunk_size={chunk_size} rows to file in "
-              f"{elapsed_time_upload_to_file_likes} seconds for `{collection}`.")
-
-    # Bookmarks
-    collection = 'bookmarks'
-    data = ((f"'{uuid.uuid4()}',"
-             f"'{uuid.uuid4()}'"
              f"\n")
             for _ in range(chunk_size))
     elapsed_time_upload_to_file = load_data_to_file(collection,
                                                     data)
-    if elapsed_time_upload_to_file:
-        print(f"Upload chunk_size={chunk_size} rows to file in "
-              f"{elapsed_time_upload_to_file} seconds for `{collection}`.")
 
     # Insert to likes collection
     start_time = time.time()
+    items = [('likes', 'likes.csv', 'user_id,movie_id,point')
+             for i in range(num_chunks)]
     with mp.Pool(mp.cpu_count()) as pool:
-        pool.map(insert_data_likes, range(num_chunks))
+        pool.starmap(insert_data, items)
     end_time = time.time()
     elapsed_time = end_time - start_time
 
     print(f"Insert {total_records} (num_chunks={num_chunks}, "
           f"chunk_size={chunk_size}) rows in "
-          f"{elapsed_time} seconds for `likes` collection")
-    print(f"Total time: {elapsed_time + elapsed_time_upload_to_file_likes}"
+          f"{elapsed_time} seconds for {collection} collection")
+    print(f"Total time: {elapsed_time + elapsed_time_upload_to_file}"
           f" sec")
 
-    #
-    #
-    # # Insert to bookmarks collection
-    # start_time = time.time()
-    # with mp.Pool(mp.cpu_count()) as pool:
-    #     pool.map(insert_data_bookmarks, range(num_chunks))
-    # end_time = time.time()
-    # elapsed_time = end_time - start_time
-    # print(f"Insert {total_records} (num_chunks={num_chunks}, "
-    #       f"chunk_size={chunk_size}) rows in "
-    #       f"{elapsed_time} seconds for `bookmarks` collection")
-    # print(f"Total time: "
-    #       f"{elapsed_time + elapsed_time_create_lines_bookmarks}"
-    #       f" sec")
+    # Bookmarks file
+    collection = 'bookmarks'
+    data = ((f"{uuid.uuid4()},"
+             f"{uuid.uuid4()}"
+             f"\n")
+            for _ in range(chunk_size))
+    elapsed_time_upload_to_file = load_data_to_file(collection,
+                                                    data)
+
+    # Insert to bookmarks collection
+    start_time = time.time()
+    items = [('bookmarks', 'bookmarks.csv', 'user_id,movie_id')
+             for i in range(num_chunks)]
+    with mp.Pool(mp.cpu_count()) as pool:
+        pool.starmap(insert_data, items)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
+    print(f"Insert {total_records} (num_chunks={num_chunks}, "
+          f"chunk_size={chunk_size}) rows in "
+          f"{elapsed_time} seconds for {collection} collection")
+    print(f"Total time: {elapsed_time + elapsed_time_upload_to_file}"
+          f" sec")
