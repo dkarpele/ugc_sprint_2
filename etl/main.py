@@ -8,13 +8,14 @@ from services.clickhouse import ClickHouseLoader
 import sentry_sdk
 
 sentry_sdk.init(
-  dsn="https://7f9167f41cae63cde0db1f217d884c37@o4505697103380480.ingest.sentry.io/4505697146699776",
+    dsn=settings.sentry_dns,
 
-  # Set traces_sample_rate to 1.0 to capture 100%
-  # of transactions for performance monitoring.
-  # We recommend adjusting this value in production.
-  traces_sample_rate=1.0
+    # Set traces_sample_rate to 1.0 to capture 100%
+    # of transactions for performance monitoring.
+    # We recommend adjusting this value in production.
+    traces_sample_rate=1.0
 )
+
 
 def etl_clickhouse() -> None:
     """ETL from Kafka to ClickHouse"""
@@ -30,7 +31,7 @@ def etl_clickhouse() -> None:
             sasl_plain_password=kafka_settings.password,
             ssl_cafile=kafka_settings.ssl_cafile,
             consumer_timeout_ms=settings.timeout_clickhouse * 1000
-            ),
+        ),
         clickhouse=Client(settings.clickhouse_server)
     )
     while True:
