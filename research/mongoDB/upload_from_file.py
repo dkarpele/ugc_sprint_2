@@ -55,7 +55,7 @@ def load_data_to_file(collection_name, collection_data):
 
 def insert_data(collection_name='likes',
                 file_name='likes.csv',
-                fields='user_id,movie_id,point') -> None:
+                fields='user_id,movie_id,rating') -> None:
     if not os.path.isfile(f'{os.getcwd()}/{file_name}'):
         raise Exception(f'Create {file_name} first!')
     try:
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     # Insert to likes collection
     start_time = time.time()
-    items = [('likes', 'likes.csv', 'user_id,movie_id,point')
+    items = [('likes', 'likes.csv', 'user_id,movie_id,rating')
              for i in range(num_chunks)]
     with mp.Pool(mp.cpu_count()) as pool:
         pool.starmap(insert_data, items)

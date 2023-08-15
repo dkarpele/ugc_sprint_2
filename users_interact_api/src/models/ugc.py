@@ -19,7 +19,7 @@ class RequestModel(Model):
 class LikesModel(Model):
     user_id: UUID
     movie_id: UUID
-    point: int
+    rating: int
 
 
 class LikesCountMovieModel(Model):
@@ -33,13 +33,27 @@ class MovieAvgModel(Model):
     avg_rating: float
 
 
-class ReviewModel(Model):
-    review_id: UUID
+class RequestReviewModel(RequestModel):
+    review: str
+
+
+class RequestReviewIdModel(Model):
+    review_id: str
+
+
+class ReviewResponseModel(Model):
     user_id: UUID
     movie_id: UUID
     review: str
     date: datetime = Field(default_factory=datetime.now)
-    likes: int | None = None
+    likes_amount: int = 0
+    dislikes_amount: int = 0
+
+
+class LikedReviewModel(Model):
+    review_id: str
+    user_id: UUID
+    rating: int
 
 
 class BookmarksResponseModel(Model):

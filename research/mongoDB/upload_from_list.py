@@ -26,7 +26,7 @@ def load_data_to_list_likes(size):
     start = time.time()
     lines_ = [{"user_id": str(uuid.uuid4()),
                "movie_id": str(uuid.uuid4()),
-               "point": fake.random_int(min=0, max=1) * 10}
+               "rating": fake.random_int(min=0, max=1) * 10}
               for _ in range(size)]
 
     end = time.time()
