@@ -45,7 +45,7 @@ app = FastAPI(
     docs_url='/api/openapi-user-analyze',
     openapi_url='/api/openapi-user-analyze.json',
     default_response_class=ORJSONResponse,
-    lifespan=lifespan, )
+    lifespan=lifespan,)
 
 app.include_router(views.router, prefix='/api/v1/views', tags=['views'])
 app.include_router(bookmarks.router, prefix='/api/v1/bookmarks',
