@@ -20,7 +20,7 @@ movie_id = '284b6fe4-7cd6-4137-9096-100158e79ed7'
 def count_user_likes(like=10):
     try:
         filter_ = {'user_id': user_id,
-                   'point': like}
+                   'rating': like}
         return db['likes'].count_documents(filter_)
 
     except Exception as err:
@@ -30,7 +30,7 @@ def count_user_likes(like=10):
 def count_liked_movies(like=10):
     try:
         filter_ = {'movie_id': movie_id,
-                   'point': like}
+                   'rating': like}
         return db['likes'].count_documents(filter_)
 
     except Exception as err:
@@ -49,7 +49,7 @@ def average_movie_rating():
                 '$group': {
                     '_id': "$movie_id",
                     'avg_rating': {
-                        '$avg': "$point"
+                        '$avg': "$rating"
                     }
                 }
             }
@@ -63,7 +63,7 @@ def average_movie_rating():
 def show_user_likes(like=10):
     try:
         filter_ = {'user_id': user_id,
-                   'point': like}
+                   'rating': like}
         res = db['likes'].find(filter_, {"movie_id": 1})
         return res
     except Exception as err:

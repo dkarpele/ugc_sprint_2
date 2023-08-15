@@ -10,6 +10,7 @@ from pymongo.results import DeleteResult
 from db.mongo import get_mongo, Mongo
 from core.config import mongo_settings
 from models.model import Model
+from services.exceptions import entity_doesnt_exist
 
 
 @lru_cache()
@@ -21,7 +22,26 @@ def get_mongo_service(
 MongoDep = Annotated[Mongo, Depends(get_mongo_service)]
 
 
-async def set_data(
+async def insert_data(
+        db: AsyncIOMotorClient,
+        insert: Model | dict,
+        collection: str,
+) -> None:
+    """Save doc in Mongo db
+    Args:
+        :param db: MongoDB
+        :param insert: Document to insert
+        :param collection: Collection name
+    """
+    db_name = mongo_settings.db
+    db = db.client[db_name]
+    try:
+        await db[collection].insert_one(jsonable_encoder(insert))
+    except errors.PyMongoError as err:
+        raise entity_doesnt_exist(err)
+
+
+async def update_data(
         db: AsyncIOMotorClient,
         query: Model | dict,
         update: Model | dict,
@@ -41,18 +61,14 @@ async def set_data(
                                         {"$set": jsonable_encoder(update)},
                                         upsert=True)
     except errors.PyMongoError as err:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=err,
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise entity_doesnt_exist(err)
 
 
 async def get_data(
         db: AsyncIOMotorClient,
         query: dict | str,
         collection: str,
-        projection: str | None = None
+        projection: dict | None = None
 ) -> list:
     """Get doc from Mongo db
     Args:
@@ -65,17 +81,14 @@ async def get_data(
     db = db.client[db_name]
     if projection:
         res = db[collection].find(jsonable_encoder(query),
-                                  {projection: 1})
+                                  projection)
     else:
         res = db[collection].find(jsonable_encoder(query),)
     documents_list = []
     async for document in res:
         documents_list.append(document)
 
-    if not projection:
-        return documents_list
-    else:
-        return [elem[projection] for elem in documents_list]
+    return documents_list
 
 
 async def delete_data(
@@ -94,11 +107,7 @@ async def delete_data(
     try:
         res = await db[collection].delete_one(jsonable_encoder(document),)
     except errors.PyMongoError as err:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=err,
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise entity_doesnt_exist(err)
     return res
 
 
