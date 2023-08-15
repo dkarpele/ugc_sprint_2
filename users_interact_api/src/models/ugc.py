@@ -37,14 +37,23 @@ class RequestReviewModel(RequestModel):
     review: str
 
 
+class RequestReviewIdModel(Model):
+    review_id: str
+
+
 class ReviewResponseModel(Model):
     user_id: UUID
     movie_id: UUID
     review: str
     date: datetime = Field(default_factory=datetime.now)
-    likes: list[dict[UUID, int]] | None = None
     likes_amount: int = 0
     dislikes_amount: int = 0
+
+
+class LikedReviewModel(Model):
+    review_id: str
+    user_id: UUID
+    rating: int
 
 
 class BookmarksResponseModel(Model):

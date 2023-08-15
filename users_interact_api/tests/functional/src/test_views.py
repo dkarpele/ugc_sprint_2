@@ -48,7 +48,6 @@ class TestSendTimeframe:
 
                 body = await response.json()
                 assert 'user_id' in body.keys()
-                print()
 
     @pytest.mark.parametrize(
         'payload, expected_answer',

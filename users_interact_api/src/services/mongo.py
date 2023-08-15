@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends
 from fastapi.encoders import jsonable_encoder
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo import errors
@@ -43,8 +43,8 @@ async def insert_data(
 
 async def update_data(
         db: AsyncIOMotorClient,
-        query: Model | dict,
-        update: Model | dict,
+        query: dict,
+        update: dict,
         collection: str,
 ) -> None:
     """Save doc in Mongo db
@@ -57,8 +57,8 @@ async def update_data(
     db_name = mongo_settings.db
     db = db.client[db_name]
     try:
-        await db[collection].update_one(jsonable_encoder(query),
-                                        {"$set": jsonable_encoder(update)},
+        await db[collection].update_one(query,
+                                        {"$set": update},
                                         upsert=True)
     except errors.PyMongoError as err:
         raise entity_doesnt_exist(err)
@@ -68,22 +68,25 @@ async def get_data(
         db: AsyncIOMotorClient,
         query: dict | str,
         collection: str,
-        projection: dict | None = None
+        projection: dict | None = None,
+        sort: tuple = None
 ) -> list:
     """Get doc from Mongo db
     Args:
+        :param sort: tuple = ('sort_by', 1 or -1 for asc or desc)
         :param projection: which fields are returned in the matching documents.
         :param db: MongoDB
         :param query: Request to find
         :param collection: Collection name
     """
+    if not sort:
+        sort = ('_id', 1)
     db_name = mongo_settings.db
     db = db.client[db_name]
-    if projection:
-        res = db[collection].find(jsonable_encoder(query),
-                                  projection)
-    else:
-        res = db[collection].find(jsonable_encoder(query),)
+
+    res = db[collection].find(jsonable_encoder(query),
+                              projection).sort(*sort)
+
     documents_list = []
     async for document in res:
         documents_list.append(document)
@@ -143,6 +146,6 @@ async def get_count(
     """
     db_name = mongo_settings.db
     db = db.client[db_name]
-    count = await db[collection].count_documents(jsonable_encoder(query),)
+    count = await db[collection].count_documents(query)
 
     return count

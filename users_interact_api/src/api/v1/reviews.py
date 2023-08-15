@@ -1,16 +1,15 @@
 from typing import List, Annotated
-from uuid import UUID
 
-from fastapi import APIRouter, status, HTTPException, Depends
+from fastapi import APIRouter, status, Depends, Query
 
-from models.ugc import RequestReviewModel, ReviewResponseModel, RequestModel
-from services.mongo import MongoDep, update_data, get_data, delete_data, \
-    insert_data
+from models.ugc import RequestReviewModel, ReviewResponseModel, RequestModel, \
+    LikedReviewModel, RequestReviewIdModel
+from services.likes import add_like_to_review_helper
+from services.mongo import MongoDep, get_data, insert_data
 from services.token import security_jwt, get_user_id
 
 # Объект router, в котором регистрируем обработчики
 router = APIRouter()
-collection = 'reviews'
 
 
 @router.post('/add-review',
@@ -19,11 +18,12 @@ collection = 'reviews'
              description="создание рецензии на фильм",
              response_description="user_id, movie_id, review, date, "
                                   "likes to review")
-async def add_review(# token: Annotated[str, Depends(security_jwt)],
+async def add_review(token: Annotated[str, Depends(security_jwt)],
                      review: RequestReviewModel,
                      mongo: MongoDep) -> ReviewResponseModel:
-    # user_id = await get_user_id(token)
-    user_id = '3df47e84-a0e1-4741-81fe-fdacadd4f4f1'
+    collection = 'reviews'
+    user_id = await get_user_id(token)
+
     review_document = {'user_id': user_id,
                        'movie_id': review.movie_id,
                        'review': review.review}
@@ -40,30 +40,52 @@ async def add_review(# token: Annotated[str, Depends(security_jwt)],
                                  "likes to review")
 async def list_reviews(movie: Annotated[RequestModel,
                                         Depends(RequestModel)],
-                       mongo: MongoDep) -> List:
+                       mongo: MongoDep,
+                       sort: str = Query(None,
+                                         description='Sort by date or likes'
+                                                     ' amount. Use - before '
+                                                     'sorting method to be asc'
+                                                     ' or desc relatively')
+                       ) -> List:
+
+    try:
+        if sort.startswith('-'):
+            sort = (sort[1:], -1)
+        else:
+            sort = (sort, 1)
+    except AttributeError:
+        sort = None
+    collection = 'reviews'
     reviews_query = {'movie_id': movie.movie_id}
 
     res = await get_data(mongo,
                          reviews_query,
                          collection,
-                         {'movie_id': 0, '_id': 0})
+                         {'movie_id': 0, '_id': 0},
+                         sort=sort)
     return res
 
 
 @router.post('/add-like-to-review',
-             response_model=ReviewResponseModel,
+             response_model=LikedReviewModel,
              status_code=status.HTTP_201_CREATED,
              description="поставить лайк на рецензию",
-             response_description="user_id, movie_id, review, date, "
-                                  "likes to review")
-async def add_like_to_review(# token: Annotated[str, Depends(security_jwt)],
-                             review: RequestReviewModel,
-                             mongo: MongoDep) -> ReviewResponseModel:
-    # user_id = await get_user_id(token)
-    user_id = '3df47e84-a0e1-4741-81fe-fdacadd4f4f1'
-    review_document = {'user_id': user_id,
-                       'movie_id': review.movie_id,
-                       'review': review.review}
-    res = ReviewResponseModel(**review_document)
-    await insert_data(mongo, res, collection)
+             response_description="review_id, user_id, rating")
+async def add_like_to_review(token: Annotated[str, Depends(security_jwt)],
+                             review: RequestReviewIdModel,
+                             mongo: MongoDep) -> LikedReviewModel:
+    res = await add_like_to_review_helper(review, mongo, token, 10)
+    return res
+
+
+@router.post('/add-dislike-to-review',
+             response_model=LikedReviewModel,
+             status_code=status.HTTP_201_CREATED,
+             description="поставить disлайк на рецензию",
+             response_description="review_id, user_id, rating")
+async def add_dislike_to_review(
+        token: Annotated[str, Depends(security_jwt)],
+        review: RequestReviewIdModel,
+        mongo: MongoDep) -> LikedReviewModel:
+    res = await add_like_to_review_helper(review, mongo, token, 0)
     return res

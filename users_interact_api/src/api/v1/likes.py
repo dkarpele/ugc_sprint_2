@@ -4,7 +4,8 @@ from fastapi import APIRouter, status, HTTPException, Depends
 
 from models.ugc import RequestModel, LikesModel, MovieAvgModel, \
     LikesCountMovieModel
-from services.mongo import MongoDep, update_data, delete_data, get_aggregated,\
+from services.likes import set_like_to_movie_helper
+from services.mongo import MongoDep, delete_data, get_aggregated,\
     get_count, get_data
 from services.token import security_jwt, get_user_id
 
@@ -21,17 +22,7 @@ collection = 'likes'
 async def set_like(token: Annotated[str, Depends(security_jwt)],
                    like: RequestModel,
                    mongo: MongoDep) -> LikesModel:
-    user_id = await get_user_id(token)
-    # user_id = '6df47e84-a0e1-4741-81fe-fdacadd4f4f9'
-    like_document = {'user_id': user_id,
-                     'movie_id': like.movie_id,
-                     'rating': 10}
-    res = LikesModel(**like_document)
-    await update_data(mongo,
-                      {'user_id': user_id,
-                       'movie_id': like.movie_id},
-                      res,
-                      collection)
+    res = await set_like_to_movie_helper(like, mongo, token, 10)
     return res
 
 
@@ -43,17 +34,7 @@ async def set_like(token: Annotated[str, Depends(security_jwt)],
 async def set_dislike(token: Annotated[str, Depends(security_jwt)],
                       dislike: RequestModel,
                       mongo: MongoDep) -> LikesModel:
-    user_id = await get_user_id(token)
-    # user_id = '3df47e84-a0e1-4741-81fe-fdacadd4f4f9'
-    like_document = {'user_id': user_id,
-                     'movie_id': dislike.movie_id,
-                     'rating': 0}
-    res = LikesModel(**like_document)
-    await update_data(mongo,
-                   {'user_id': user_id,
-                    'movie_id': dislike.movie_id},
-                   res,
-                   collection)
+    res = await set_like_to_movie_helper(dislike, mongo, token, 0)
     return res
 
 
@@ -111,12 +92,12 @@ async def likes_count_movie(movie: Annotated[RequestModel,
                'dislikes_count': 0}
         return LikesCountMovieModel(**res)
 
-    likes_count_query = {"movie_id": movie.movie_id,
+    likes_count_query = {"movie_id": str(movie.movie_id),
                          "rating": 10}
     likes_count = await get_count(mongo,
                                   likes_count_query,
                                   collection)
-    dislikes_count_query = {"movie_id": movie.movie_id,
+    dislikes_count_query = {"movie_id": str(movie.movie_id),
                             "rating": 0}
     dislikes_count = await get_count(mongo,
                                      dislikes_count_query,
@@ -134,7 +115,6 @@ async def delete_like(token: Annotated[str, Depends(security_jwt)],
                       like: RequestModel,
                       mongo: MongoDep):
     user_id = await get_user_id(token)
-    # user_id = '3df47e84-a0e1-4741-81fe-fdacadd4f4f9'
     like_document = {'user_id': user_id, 'movie_id': like.movie_id}
     res = await delete_data(mongo,
                             like_document,
