@@ -69,7 +69,7 @@ async def get_data(
         query: dict | str,
         collection: str,
         projection: dict | None = None,
-        sort: tuple = None
+        sort: tuple | None = None
 ) -> list:
     """Get doc from Mongo db
     Args:

@@ -50,11 +50,11 @@ async def list_reviews(movie: Annotated[RequestModel,
 
     try:
         if sort.startswith('-'):
-            sort = (sort[1:], -1)
+            sort_ = (sort[1:], -1)
         else:
-            sort = (sort, 1)
+            sort_ = (sort, 1)
     except AttributeError:
-        sort = None
+        sort_ = None
     collection = 'reviews'
     reviews_query = {'movie_id': movie.movie_id}
 
@@ -62,7 +62,7 @@ async def list_reviews(movie: Annotated[RequestModel,
                          reviews_query,
                          collection,
                          {'movie_id': 0, '_id': 0},
-                         sort=sort)
+                         sort=sort_)
     return res
 
 

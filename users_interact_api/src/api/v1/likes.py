@@ -5,7 +5,7 @@ from fastapi import APIRouter, status, HTTPException, Depends
 from models.ugc import RequestModel, LikesModel, MovieAvgModel, \
     LikesCountMovieModel
 from services.likes import set_like_to_movie_helper
-from services.mongo import MongoDep, delete_data, get_aggregated,\
+from services.mongo import MongoDep, delete_data, get_aggregated, \
     get_count, get_data
 from services.token import security_jwt, get_user_id
 

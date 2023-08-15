@@ -9,7 +9,7 @@ from services.token import get_user_id
 
 async def add_like_to_review_helper(review: RequestReviewIdModel,
                                     mongo: MongoDep,
-                                    token: str = None,
+                                    token: str | None = None,
                                     rating: int = 10) -> LikedReviewModel:
     # check if review_id really exists
     review_exists = await get_count(
@@ -60,7 +60,7 @@ async def add_like_to_review_helper(review: RequestReviewIdModel,
 
 async def set_like_to_movie_helper(like: RequestModel,
                                    mongo: MongoDep,
-                                   token: str = None,
+                                   token: str | None = None,
                                    rating: int = 10) -> LikesModel:
     collection = 'likes'
     user_id = await get_user_id(token)
