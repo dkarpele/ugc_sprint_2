@@ -1,3 +1,4 @@
 /.env
 /etl/.env
+/elk/.env
 /users_interact_api/src/.env

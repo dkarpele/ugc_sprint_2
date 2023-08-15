@@ -5,6 +5,12 @@ from kafka import KafkaConsumer
 
 from core.config import settings, kafka_settings
 from services.clickhouse import ClickHouseLoader
+import sentry_sdk
+
+sentry_sdk.init(
+    dsn=settings.sentry_dns,
+    traces_sample_rate=1.0
+)
 
 
 def etl_clickhouse() -> None:
@@ -21,7 +27,7 @@ def etl_clickhouse() -> None:
             sasl_plain_password=kafka_settings.password,
             ssl_cafile=kafka_settings.ssl_cafile,
             consumer_timeout_ms=settings.timeout_clickhouse * 1000
-            ),
+        ),
         clickhouse=Client(settings.clickhouse_server)
     )
     while True:

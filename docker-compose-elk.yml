@@ -1,0 +1,55 @@
+version: '2.2'
+services:
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:7.3.2
+    networks:
+      - backend
+    command: filebeat -e -strict.perms=false
+    volumes:
+      - /tmp/logs/nginx:/var/log/nginx:ro
+      - ./elk/filebeat.yml:/usr/share/filebeat/filebeat.yml
+    depends_on:
+      - users_interact_api
+      - nginx
+      - logstash
+      - elasticsearch
+      - kibana
+    links:
+      - logstash
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.10.2
+    networks:
+      - backend
+    depends_on:
+      - elasticsearch
+    env_file:
+      - ./elk/.env
+    ports:
+      - "5044:5044/udp"
+    volumes:
+      - ./elk/logstash.conf:/config/logstash.conf:ro
+    command: logstash -f /config/logstash.conf
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+    networks:
+      - backend
+    environment:
+      discovery.type: single-node
+    ports:
+      - 9200:9200
+    volumes:
+      - /tmp/esdata:/tmp/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.10.2
+    networks:
+      - backend
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+
+networks:
+  backend:

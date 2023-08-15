@@ -1,4 +1,6 @@
 import logging
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
@@ -8,6 +10,8 @@ from api.v1 import views, bookmarks, likes
 from core.config import settings, mongo_settings
 from core.logger import LOGGING
 from db import mongo
+
+sentry_sdk.init(integrations=[FastApiIntegration()])
 
 
 async def startup():
@@ -33,6 +37,7 @@ async def lifespan(app: FastAPI):
     await startup()
     yield
 
+
 app = FastAPI(
     title="Api to analyze users behaviour",
     description="Api to analyze users behaviour",
@@ -41,7 +46,6 @@ app = FastAPI(
     openapi_url='/api/openapi-user-analyze.json',
     default_response_class=ORJSONResponse,
     lifespan=lifespan,)
-
 
 app.include_router(views.router, prefix='/api/v1/views', tags=['views'])
 app.include_router(bookmarks.router, prefix='/api/v1/bookmarks',

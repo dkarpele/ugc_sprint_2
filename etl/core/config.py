@@ -19,6 +19,7 @@ class Settings(MainConf):
     chunk_size_clickhouse: int = Field(..., env='CHUNK_SIZE_CLICKHOUSE')
     timeout_clickhouse: int = Field(..., env='TIMEOUT_CLICKHOUSE')
     clickhouse_server: str = Field(..., env='CLICKHOUSE_SERVER')
+    sentry_dns: str = Field(..., env='SENTRY_DNS')
 
     class Config:
         env_file = '.env'
