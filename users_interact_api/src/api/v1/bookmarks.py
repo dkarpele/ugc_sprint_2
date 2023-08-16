@@ -66,5 +66,4 @@ async def delete_document_bookmarks(
             detail="Bookmark not found!",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    else:
-        return True
+    return True

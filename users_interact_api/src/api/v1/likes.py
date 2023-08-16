@@ -125,5 +125,4 @@ async def delete_like(token: Annotated[str, Depends(security_jwt)],
             detail="Like not found!",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    else:
-        return True
+    return True

@@ -21,6 +21,8 @@ def get_mongo_service(
 
 MongoDep = Annotated[Mongo, Depends(get_mongo_service)]
 
+MAX_PAGE_SIZE = 10
+
 
 async def insert_data(
         db: AsyncIOMotorClient,
@@ -69,10 +71,14 @@ async def get_data(
         query: dict | str,
         collection: str,
         projection: dict | None = None,
-        sort: tuple | None = None
+        sort: tuple | None = None,
+        page: int | None = None,
+        size: int | None = None
 ) -> list:
     """Get doc from Mongo db
     Args:
+        :param page: page number
+        :param size: page size
         :param sort: tuple = ('sort_by', 1 or -1 for asc or desc)
         :param projection: which fields are returned in the matching documents.
         :param db: MongoDB
@@ -81,11 +87,26 @@ async def get_data(
     """
     if not sort:
         sort = ('_id', 1)
+
+    if page and size:
+        offset = (page * size) - size
+    elif page and not size:
+        size = MAX_PAGE_SIZE
+        offset = (page * size) - size
+    elif not page and size:
+        offset = 0
+    else:
+        offset = 0
+        size = MAX_PAGE_SIZE
+
     db_name = mongo_settings.db
     db = db.client[db_name]
 
-    res = db[collection].find(jsonable_encoder(query),
-                              projection).sort(*sort)
+    res = (db[collection].
+           find(jsonable_encoder(query), projection).
+           sort(*sort).
+           skip(offset).
+           limit(size))
 
     documents_list = []
     async for document in res:

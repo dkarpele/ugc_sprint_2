@@ -57,22 +57,25 @@ class TestGetReview:
                '?movie_id=3fa85f64-5717-4562-b3fc-2c963f66afa6')
 
     @pytest.mark.parametrize(
-        'sort, expected_answer',
+        'paginate, sort, expected_answer',
         [
 
             (
+                    '',
                     '',
                     {'status': HTTPStatus.OK,
                      'likes_amount': 0},
             ),
 
             (
+                    '&page_size=5&page_number=2',
                     '&sort=date',
                     {'status': HTTPStatus.OK,
                      'likes_amount': 0},
             ),
 
             (
+                    '&page_size=5',
                     '&sort=-date',
                     {'status': HTTPStatus.OK,
                      'likes_amount': 0},
@@ -81,9 +84,10 @@ class TestGetReview:
     )
     async def test_get_review(self,
                               session_client,
+                              paginate,
                               sort,
                               expected_answer):
-        url = settings.service_url + PREFIX + self.postfix + sort
+        url = settings.service_url + PREFIX + self.postfix + sort + paginate
 
         async with session_client.get(url) as response:
             assert response.status == expected_answer['status']
