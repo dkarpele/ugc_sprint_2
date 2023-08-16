@@ -7,17 +7,13 @@
 3. Launch the project ```docker-compose up --build```.
 
 
-#### [cluster_clickhouse](cluster_clickhouse)
-
-Cluster settings for ClickHouse (runs from `docker-compose.yaml`)
-
 #### [etl](etl)
 
 ETL process to transfer from Kafka (running in Yandex Cloud) to ClickHouse (docker)
 
 #### [research](research)
 
-Research which storage to use: Vertica (docker), ClickHouse (docker) or MongoDB (docker) - **NEW**
+Research which storage to use: MongoDB (docker) - **NEW**
 
 #### [users_interact_api](users_interact_api)
 
