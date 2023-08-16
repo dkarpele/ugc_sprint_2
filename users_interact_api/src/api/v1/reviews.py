@@ -2,6 +2,7 @@ from typing import List, Annotated
 
 from fastapi import APIRouter, status, Depends, Query
 
+from models.model import PaginateModel
 from models.ugc import RequestReviewModel, ReviewResponseModel, RequestModel, \
     LikedReviewModel, RequestReviewIdModel
 from services.likes import add_like_to_review_helper
@@ -10,6 +11,8 @@ from services.token import security_jwt, get_user_id
 
 # Объект router, в котором регистрируем обработчики
 router = APIRouter()
+
+Paginate = Annotated[PaginateModel, Depends(PaginateModel)]
 
 
 @router.post('/add-review',
@@ -41,11 +44,12 @@ async def add_review(token: Annotated[str, Depends(security_jwt)],
 async def list_reviews(movie: Annotated[RequestModel,
                                         Depends(RequestModel)],
                        mongo: MongoDep,
+                       pagination: Paginate,
                        sort: str = Query(None,
                                          description='Sort by date or likes'
                                                      ' amount. Use - before '
                                                      'sorting method to be asc'
-                                                     ' or desc relatively')
+                                                     ' or desc relatively'),
                        ) -> List:
 
     try:
@@ -62,7 +66,9 @@ async def list_reviews(movie: Annotated[RequestModel,
                          reviews_query,
                          collection,
                          {'movie_id': 0, '_id': 0},
-                         sort=sort_)
+                         sort=sort_,
+                         page=pagination.page_number,
+                         size=pagination.page_size)
     return res
 
 
