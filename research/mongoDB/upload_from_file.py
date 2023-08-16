@@ -49,7 +49,7 @@ def load_data_to_file(collection_name, collection_data):
         'rb').read())
 
     print(f"Upload chunk_size={chunk_size} rows to file {filename} in "
-          f"{end - start} seconds for `{collection}`.")
+          f"{end - start} seconds for `{collection_name}`.")
     return end - start
 
 
