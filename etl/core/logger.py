@@ -1,5 +1,5 @@
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-LOG_DEFAULT_HANDLERS = ['console', ]
+LOG_DEFAULT_HANDLERS = ['console', 'logstash']
 
 # В логгере настраивается логгирование uvicorn-сервера.
 # Про логирование в Python можно прочитать в документации
@@ -40,6 +40,16 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'stream': 'ext://sys.stdout',
         },
+        'logstash': {
+            'level': 'INFO',
+            'class': 'logstash.LogstashHandler',
+            'host': 'logstash',
+            'port': 5044,
+            'version': 1,
+            'message_type': 'etl',
+            'fqdn': False,
+            'tags': ['etl']
+        }
     },
     'loggers': {
         '': {
@@ -48,9 +58,10 @@ LOGGING = {
         },
         'uvicorn.error': {
             'level': 'INFO',
+            'handlers': ['logstash'],
         },
         'uvicorn.access': {
-            'handlers': ['access'],
+            'handlers': ['access', 'logstash'],
             'level': 'INFO',
             'propagate': False,
         },
