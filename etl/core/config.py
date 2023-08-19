@@ -37,3 +37,11 @@ class KafkaCreds(MainConf):
 
 
 kafka_settings = KafkaCreds()
+
+
+class LogstashCreds(MainConf):
+    host: str = Field(..., env="LOGSTASH_HOST")
+    port: int = Field(..., env="LOGSTASH_PORT")
+
+
+logstash_settings = LogstashCreds()
