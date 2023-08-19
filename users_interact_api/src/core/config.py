@@ -45,3 +45,11 @@ class MongoCreds(MainConf):
 
 
 mongo_settings = MongoCreds()
+
+
+class LogstashCreds(MainConf):
+    host: str = Field(..., env="LOGSTASH_HOST")
+    port: int = Field(..., env="LOGSTASH_PORT")
+
+
+logstash_settings = LogstashCreds()

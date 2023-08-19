@@ -1,3 +1,5 @@
+from config import logstash_settings
+
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 LOG_DEFAULT_HANDLERS = ['console', 'logstash']
 
@@ -43,8 +45,8 @@ LOGGING = {
         'logstash': {
             'level': 'INFO',
             'class': 'logstash.LogstashHandler',
-            'host': 'logstash',
-            'port': 5044,
+            'host': logstash_settings.host,
+            'port': logstash_settings.port,
             'version': 1,
             'message_type': 'etl',
             'fqdn': False,
