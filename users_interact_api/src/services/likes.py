@@ -1,4 +1,5 @@
 from bson import ObjectId
+from datetime import datetime
 from fastapi import HTTPException, status
 
 from models.ugc import RequestReviewIdModel, LikedReviewModel, RequestModel, \
@@ -29,7 +30,8 @@ async def add_like_to_review_helper(review: RequestReviewIdModel,
              'review_id': ObjectId(review.review_id)}
     review_document = {'user_id': user_id,
                        'review_id': ObjectId(review.review_id),
-                       'rating': rating}
+                       'rating': rating,
+                       'date': datetime.now()}
     await update_data(mongo, query, review_document, collection)
 
     # get likes_amount/dislikes_amount from review_likes

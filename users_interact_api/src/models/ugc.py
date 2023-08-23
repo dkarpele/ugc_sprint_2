@@ -54,6 +54,8 @@ class LikedReviewModel(Model):
     review_id: str
     user_id: UUID
     rating: int
+    # Like added time
+    date: datetime = Field(default_factory=datetime.now)
 
 
 class BookmarksResponseModel(Model):
