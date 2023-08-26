@@ -1,4 +1,6 @@
 import logging
+import os
+
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from contextlib import asynccontextmanager
@@ -9,9 +11,13 @@ from fastapi.responses import ORJSONResponse
 from api.v1 import views, bookmarks, likes, reviews
 from core.config import settings, mongo_settings
 from core.logger import LOGGING
+from core.logger_wo_logstash import LOGGING as LOGGING_WO_LOGSTASH
 from db import mongo
 
 sentry_sdk.init(integrations=[FastApiIntegration()])
+
+logstash = (os.getenv('LOGSTASH_ENABLE', 'False') == 'True')
+log = LOGGING if logstash else LOGGING_WO_LOGSTASH
 
 
 async def startup():
@@ -66,6 +72,6 @@ if __name__ == '__main__':
         'main:app',
         host=f'{settings.host}',
         port=settings.port,
-        log_config=LOGGING,
+        log_config=log,
         log_level=logging.DEBUG,
     )

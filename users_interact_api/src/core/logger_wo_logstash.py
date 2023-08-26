@@ -1,21 +1,13 @@
-from pydantic import BaseSettings, Field
+from pydantic import BaseSettings
 
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-LOG_DEFAULT_HANDLERS = ['console', 'logstash']
+LOG_DEFAULT_HANDLERS = ['console']
 
 
 class MainConf(BaseSettings):
     class Config:
         env_file = '.env'
         env_file_encoding = 'utf-8'
-
-
-class LogstashCreds(MainConf):
-    host: str = Field(..., env="LOGSTASH_HOST")
-    port: int = Field(..., env="LOGSTASH_PORT")
-
-
-logstash_settings = LogstashCreds()
 
 
 # В логгере настраивается логгирование uvicorn-сервера.
@@ -57,16 +49,6 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'stream': 'ext://sys.stdout',
         },
-        'logstash': {
-            'level': 'INFO',
-            'class': 'logstash.LogstashHandler',
-            'host': logstash_settings.host,
-            'port': logstash_settings.port,
-            'version': 1,
-            'message_type': 'users_interact_api',
-            'fqdn': False,
-            'tags': ['users_interact_api']
-        }
     },
     'loggers': {
         '': {
@@ -75,10 +57,9 @@ LOGGING = {
         },
         'uvicorn.error': {
             'level': 'INFO',
-            'handlers': ['logstash'],
         },
         'uvicorn.access': {
-            'handlers': ['access', 'logstash'],
+            'handlers': ['access'],
             'level': 'INFO',
             'propagate': False,
         },

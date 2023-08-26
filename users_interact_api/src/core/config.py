@@ -1,18 +1,13 @@
 from logging import config as logging_config
 
-from core.logger import LOGGING
 from dotenv import load_dotenv
-from pydantic import BaseSettings, Field
+from pydantic import Field
+
+from core.logger import LOGGING, MainConf
 
 # Применяем настройки логирования
 logging_config.dictConfig(LOGGING)
 load_dotenv()
-
-
-class MainConf(BaseSettings):
-    class Config:
-        env_file = '.env'
-        env_file_encoding = 'utf-8'
 
 
 class Settings(MainConf):
@@ -45,11 +40,3 @@ class MongoCreds(MainConf):
 
 
 mongo_settings = MongoCreds()
-
-
-class LogstashCreds(MainConf):
-    host: str = Field(..., env="LOGSTASH_HOST")
-    port: int = Field(..., env="LOGSTASH_PORT")
-
-
-logstash_settings = LogstashCreds()
