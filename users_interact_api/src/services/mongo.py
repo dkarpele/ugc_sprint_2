@@ -103,13 +103,17 @@ async def get_data(
     db = db.client[db_name]
 
     res = (db[collection].
-           find(jsonable_encoder(query), projection).
+           find(query, projection).
            sort(*sort).
            skip(offset).
            limit(size))
 
     documents_list = []
     async for document in res:
+        try:
+            document['_id'] = str(document['_id'])
+        except KeyError:
+            pass
         documents_list.append(document)
 
     return documents_list
@@ -148,10 +152,16 @@ async def get_aggregated(
     """
     db_name = mongo_settings.db
     db = db.client[db_name]
-    cursor = db[collection].aggregate(jsonable_encoder(query),)
-    docs = await cursor.to_list(None)
+    res = db[collection].aggregate(query,)
+    documents_list = []
+    async for document in res:
+        try:
+            document['_id'] = str(document['_id'])
+        except KeyError:
+            pass
+        documents_list.append(document)
 
-    return docs
+    return documents_list
 
 
 async def get_count(

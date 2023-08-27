@@ -45,7 +45,7 @@ class ReviewResponseModel(Model):
     user_id: UUID
     movie_id: UUID
     review: str
-    date: datetime = Field(default_factory=datetime.now)
+    date: datetime = Field(default_factory=datetime.utcnow)
     likes_amount: int = 0
     dislikes_amount: int = 0
 
@@ -55,7 +55,7 @@ class LikedReviewModel(Model):
     user_id: UUID
     rating: int
     # Like added time
-    date: datetime = Field(default_factory=datetime.now)
+    date: datetime = Field(default_factory=datetime.utcnow)
 
 
 class BookmarksResponseModel(Model):
