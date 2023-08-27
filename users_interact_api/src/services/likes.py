@@ -81,7 +81,7 @@ async def set_like_to_movie_helper(like: RequestModel,
 
 
 async def users_daily_likes_helper(mongo: MongoDep):
-    query = [
+    query: list = [
         {
             '$match': {
                 'rating': 10,
@@ -101,13 +101,13 @@ async def users_daily_likes_helper(mongo: MongoDep):
     ]
     likes_amount = await get_aggregated(mongo, query, 'review_likes')
 
-    query = {
+    query1: dict = {
         '_id': {
             '$in': [ObjectId(i['_id']) for i in likes_amount]
         }
     }
-    reviews = await get_data(mongo, query, 'reviews')
-    user_daily_likes = {}
+    reviews = await get_data(mongo, query1, 'reviews')
+    user_daily_likes: dict = {}
     for like in likes_amount:
         for review in reviews:
             if like['_id'] == review['_id']:
