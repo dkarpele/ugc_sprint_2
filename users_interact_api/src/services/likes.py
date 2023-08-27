@@ -111,16 +111,14 @@ async def users_daily_likes_helper(mongo: MongoDep):
     for like in likes_amount:
         for review in reviews:
             if like['_id'] == review['_id']:
-                # j.update(i)
-                list_to_append = [review['movie_id'],
-                                  review['review'][:20],
-                                  like['likes_amount_24_hours']]
+                tuple_to_append = (review['movie_id'],
+                                   review['review'][:20],
+                                   like['likes_amount_24_hours'])
                 if review['user_id'] in user_daily_likes.keys():
-                    user_daily_likes.update(
-                        {review['user_id']:
-                            review['user_id'].extend(list_to_append)})
+                    user_daily_likes[review['user_id']].append(tuple_to_append)
                 else:
                     user_daily_likes.update(
-                        {review['user_id']: list_to_append})
+                        {review['user_id']: [tuple_to_append]})
+                reviews.remove(review)
                 break
-    return reviews
+    return user_daily_likes

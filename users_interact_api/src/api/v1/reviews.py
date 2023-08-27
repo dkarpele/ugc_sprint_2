@@ -1,4 +1,4 @@
-from typing import List, Annotated
+from typing import List, Annotated, Dict
 
 from fastapi import APIRouter, status, Depends, Query
 
@@ -99,21 +99,19 @@ async def add_dislike_to_review(
 
 @router.get('/users-daily-likes',
             # include_in_schema=False,
-            response_model=List,
+            response_model=Dict,
             status_code=status.HTTP_200_OK,
             description="get likes count for users for time period",
             response_description="""
-            {user_id_1: [ 
-                       {movie_id : 1, 
-                       review_text : review_1 [:20], 
-                       count(likes_amount_24_hours)},
-                       {movie_id : 1, 
-                       review_text : review_2 [:20], 
-                       count(likes_amount_24_hours)},
-                       {movie_id : 2, 
-                       review_text : review_3 [:20], 
-                       count(likes_amount_24_hours)} ],
-            user_id_2 : ....}""")
-async def users_daily_likes(mongo: MongoDep,) -> List:
+            {
+                "user_id": [
+                    [
+                        "movie_id",
+                        "review_text shortened to 20 signs",
+                        likes amount for the last 24 hours (int)
+                    ]
+                ]
+            }""")
+async def users_daily_likes(mongo: MongoDep,) -> Dict:
     res = await users_daily_likes_helper(mongo)
     return res
