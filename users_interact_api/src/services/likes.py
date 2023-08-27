@@ -1,10 +1,11 @@
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import HTTPException, status
 
 from models.ugc import RequestReviewIdModel, LikedReviewModel, RequestModel, \
     LikesModel
-from services.mongo import MongoDep, update_data, get_count
+from services.mongo import MongoDep, update_data, get_count, get_aggregated, \
+    get_data
 from services.token import get_user_id
 
 
@@ -20,7 +21,7 @@ async def add_like_to_review_helper(review: RequestReviewIdModel,
     if review_exists == 0:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail=f'{review.review_id} review does not exist',
-                            headers={"WWW-Authenticate": "Bearer"},)
+                            headers={"WWW-Authenticate": "Bearer"}, )
 
     collection = 'review_likes'
     user_id = await get_user_id(token)
@@ -31,7 +32,7 @@ async def add_like_to_review_helper(review: RequestReviewIdModel,
     review_document = {'user_id': user_id,
                        'review_id': ObjectId(review.review_id),
                        'rating': rating,
-                       'date': datetime.now()}
+                       'date': datetime.utcnow()}
     await update_data(mongo, query, review_document, collection)
 
     # get likes_amount/dislikes_amount from review_likes
@@ -77,3 +78,47 @@ async def set_like_to_movie_helper(like: RequestModel,
                       like_document,
                       collection)
     return res
+
+
+async def users_daily_likes_helper(mongo: MongoDep):
+    query = [
+        {
+            '$match': {
+                'rating': 10,
+                'date': {
+                    '$gt': datetime.utcnow() - timedelta(days=1)
+                }
+            }
+        },
+        {
+            '$group': {
+                '_id': '$review_id',
+                'likes_amount_24_hours': {
+                    '$count': {}
+                }
+            }
+        }
+    ]
+    likes_amount = await get_aggregated(mongo, query, 'review_likes')
+
+    query = {
+        '_id': {
+            '$in': [ObjectId(i['_id']) for i in likes_amount]
+        }
+    }
+    reviews = await get_data(mongo, query, 'reviews')
+    user_daily_likes = {}
+    for like in likes_amount:
+        for review in reviews:
+            if like['_id'] == review['_id']:
+                tuple_to_append = (review['movie_id'],
+                                   review['review'][:20],
+                                   like['likes_amount_24_hours'])
+                if review['user_id'] in user_daily_likes.keys():
+                    user_daily_likes[review['user_id']].append(tuple_to_append)
+                else:
+                    user_daily_likes.update(
+                        {review['user_id']: [tuple_to_append]})
+                reviews.remove(review)
+                break
+    return user_daily_likes

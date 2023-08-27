@@ -1,11 +1,11 @@
-from typing import List, Annotated
+from typing import List, Annotated, Dict
 
 from fastapi import APIRouter, status, Depends, Query
 
 from models.model import PaginateModel
 from models.ugc import RequestReviewModel, ReviewResponseModel, RequestModel, \
     LikedReviewModel, RequestReviewIdModel
-from services.likes import add_like_to_review_helper
+from services.likes import add_like_to_review_helper, users_daily_likes_helper
 from services.mongo import MongoDep, get_data, insert_data
 from services.token import security_jwt, get_user_id
 
@@ -60,12 +60,12 @@ async def list_reviews(movie: Annotated[RequestModel,
     except AttributeError:
         sort_ = None
     collection = 'reviews'
-    reviews_query = {'movie_id': movie.movie_id}
+    reviews_query = {'movie_id': str(movie.movie_id)}
 
     res = await get_data(mongo,
                          reviews_query,
                          collection,
-                         {'movie_id': 0, '_id': 0},
+                         {'movie_id': 0},
                          sort=sort_,
                          page=pagination.page_number,
                          size=pagination.page_size)
@@ -94,4 +94,24 @@ async def add_dislike_to_review(
         review: RequestReviewIdModel,
         mongo: MongoDep) -> LikedReviewModel:
     res = await add_like_to_review_helper(review, mongo, token, 0)
+    return res
+
+
+@router.get('/users-daily-likes',
+            # include_in_schema=False,
+            response_model=Dict,
+            status_code=status.HTTP_200_OK,
+            description="get likes count for users for time period",
+            response_description="""
+            {
+                "user_id": [
+                    [
+                        "movie_id",
+                        "review_text shortened to 20 signs",
+                        likes amount for the last 24 hours (int)
+                    ]
+                ]
+            }""")
+async def users_daily_likes(mongo: MongoDep,) -> Dict:
+    res = await users_daily_likes_helper(mongo)
     return res

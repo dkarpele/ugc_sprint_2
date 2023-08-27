@@ -49,7 +49,7 @@ async def average_movie_rating(movie: Annotated[RequestModel,
     avg_query = [
         {
             '$match': {
-                'movie_id': movie.movie_id
+                'movie_id': str(movie.movie_id)
             }
         },
         {
@@ -84,7 +84,7 @@ async def likes_count_movie(movie: Annotated[RequestModel,
                             mongo: MongoDep) -> LikesCountMovieModel:
 
     films = await get_data(mongo,
-                           {"movie_id": movie.movie_id},
+                           {"movie_id": str(movie.movie_id)},
                            collection)
     if len(films) == 0:
         res = {"movie_id": movie.movie_id,

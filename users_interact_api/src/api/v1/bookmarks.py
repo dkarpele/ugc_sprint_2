@@ -38,7 +38,7 @@ async def set_document_bookmarks(token: Annotated[str, Depends(security_jwt)],
 async def get_document_bookmarks(token: Annotated[str, Depends(security_jwt)],
                                  mongo: MongoDep) -> List:
     user_id = await get_user_id(token)
-    bookmark_query = {'user_id': user_id}
+    bookmark_query = {'user_id': str(user_id)}
 
     res = await get_data(mongo,
                          bookmark_query,
