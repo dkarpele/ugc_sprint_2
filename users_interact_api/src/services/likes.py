@@ -2,11 +2,12 @@ from bson import ObjectId
 from datetime import datetime, timedelta
 from fastapi import HTTPException, status
 
+from core import config as conf
 from models.ugc import RequestReviewIdModel, LikedReviewModel, RequestModel, \
     LikesModel
 from services.mongo import MongoDep, update_data, get_count, get_aggregated, \
     get_data
-from services.token import get_user_id
+from services.helpers import get_api_helper
 
 
 async def add_like_to_review_helper(review: RequestReviewIdModel,
@@ -24,7 +25,12 @@ async def add_like_to_review_helper(review: RequestReviewIdModel,
                             headers={"WWW-Authenticate": "Bearer"}, )
 
     collection = 'review_likes'
-    user_id = await get_user_id(token)
+    url = f'http://{conf.settings.host_auth}:' \
+          f'{conf.settings.port_auth}' \
+          f'/api/v1/users/me'
+    header = {'Authorization': f'Bearer {token}'}
+    user_id = await get_api_helper(url, header)
+    user_id = user_id['id']
 
     # add info about review_id, user_id, his like/dislike to review_likes
     query = {'user_id': user_id,
@@ -66,7 +72,12 @@ async def set_like_to_movie_helper(like: RequestModel,
                                    token: str | None = None,
                                    rating: int = 10) -> LikesModel:
     collection = 'likes'
-    user_id = await get_user_id(token)
+    url = f'http://{conf.settings.host_auth}:' \
+          f'{conf.settings.port_auth}' \
+          f'/api/v1/users/me'
+    header = {'Authorization': f'Bearer {token}'}
+    user_id = await get_api_helper(url, header)
+    user_id = user_id['id']
 
     like_document = {'user_id': user_id,
                      'movie_id': str(like.movie_id),
@@ -112,6 +123,7 @@ async def users_daily_likes_helper(mongo: MongoDep):
         for review in reviews:
             if like['_id'] == review['_id']:
                 tuple_to_append = (review['movie_id'],
+                                   review['movie_title'],
                                    review['review'][:20],
                                    like['likes_amount_24_hours'])
                 if review['user_id'] in user_daily_likes.keys():

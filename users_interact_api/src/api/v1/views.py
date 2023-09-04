@@ -4,9 +4,11 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.encoders import jsonable_encoder
 
+from core import config as conf
 from models.ugc import View
 from services.database import KafkaDep
-from services.token import security_jwt, get_user_id
+from services.token import security_jwt
+from services.helpers import get_api_helper
 
 # Объект router, в котором регистрируем обработчики
 router = APIRouter()
@@ -20,7 +22,12 @@ router = APIRouter()
 async def create_view(token: Annotated[str, Depends(security_jwt)],
                       view: View,
                       kafka: KafkaDep) -> dict:
-    user_id = await get_user_id(token)
+    url = f'http://{conf.settings.host_auth}:' \
+          f'{conf.settings.port_auth}' \
+          f'/api/v1/users/me'
+    header = {'Authorization': f'Bearer {token}'}
+    user_id = await get_api_helper(url, header)
+    user_id = user_id['id']
     await kafka.produce_viewed_frame(user_id,
                                      view.movie_id,
                                      view.begin_time,

@@ -44,6 +44,7 @@ class RequestReviewIdModel(Model):
 class ReviewResponseModel(Model):
     user_id: UUID
     movie_id: UUID
+    movie_title: str
     review: str
     date: datetime = Field(default_factory=datetime.utcnow)
     likes_amount: int = 0

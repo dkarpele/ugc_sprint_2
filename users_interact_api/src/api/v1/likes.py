@@ -2,12 +2,14 @@ from typing import Annotated
 
 from fastapi import APIRouter, status, HTTPException, Depends
 
+from core import config as conf
 from models.ugc import RequestModel, LikesModel, MovieAvgModel, \
     LikesCountMovieModel
 from services.likes import set_like_to_movie_helper
 from services.mongo import MongoDep, delete_data, get_aggregated, \
     get_count, get_data
-from services.token import security_jwt, get_user_id
+from services.token import security_jwt
+from services.helpers import get_api_helper
 
 # Объект router, в котором регистрируем обработчики
 router = APIRouter()
@@ -114,8 +116,13 @@ async def likes_count_movie(movie: Annotated[RequestModel,
 async def delete_like(token: Annotated[str, Depends(security_jwt)],
                       like: RequestModel,
                       mongo: MongoDep):
-    user_id = await get_user_id(token)
-    like_document = {'user_id': user_id, 'movie_id': like.movie_id}
+    url = f'http://{conf.settings.host_auth}:'\
+          f'{conf.settings.port_auth}'\
+          f'/api/v1/users/me'
+    header = {'Authorization': f'Bearer {token}'}
+    user_id = await get_api_helper(url, header)
+
+    like_document = {'user_id': user_id['id'], 'movie_id': like.movie_id}
     res = await delete_data(mongo,
                             like_document,
                             collection)

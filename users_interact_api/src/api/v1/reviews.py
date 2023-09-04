@@ -2,12 +2,14 @@ from typing import List, Annotated, Dict
 
 from fastapi import APIRouter, status, Depends, Query
 
+from core import config as conf
 from models.model import PaginateModel
 from models.ugc import RequestReviewModel, ReviewResponseModel, RequestModel, \
     LikedReviewModel, RequestReviewIdModel
 from services.likes import add_like_to_review_helper, users_daily_likes_helper
 from services.mongo import MongoDep, get_data, insert_data
-from services.token import security_jwt, get_user_id
+from services.token import security_jwt
+from services.helpers import get_api_helper
 
 # Объект router, в котором регистрируем обработчики
 router = APIRouter()
@@ -25,10 +27,23 @@ async def add_review(token: Annotated[str, Depends(security_jwt)],
                      review: RequestReviewModel,
                      mongo: MongoDep) -> ReviewResponseModel:
     collection = 'reviews'
-    user_id = await get_user_id(token)
 
-    review_document = {'user_id': user_id,
+    # Getting user id from token
+    url = f'http://{conf.settings.host_auth}:' \
+          f'{conf.settings.port_auth}' \
+          f'/api/v1/users/me'
+    header = {'Authorization': f'Bearer {token}'}
+    user_id = await get_api_helper(url, header)
+
+    # Getting move title from movie id
+    url = f'http://{conf.settings.host_content}:' \
+          f'{conf.settings.port_content}' \
+          f'/api/v1/films/{review.movie_id}'
+    movie_title = await get_api_helper(url)
+
+    review_document = {'user_id': user_id['id'],
                        'movie_id': review.movie_id,
+                       'movie_title': movie_title['title'],
                        'review': review.review}
     res = ReviewResponseModel(**review_document)
     await insert_data(mongo, res, collection)
@@ -107,6 +122,7 @@ async def add_dislike_to_review(
                 "user_id": [
                     [
                         "movie_id",
+                        "movie_title",
                         "review_text shortened to 20 signs",
                         likes amount for the last 24 hours (int)
                     ]

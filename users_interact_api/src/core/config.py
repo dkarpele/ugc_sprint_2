@@ -15,6 +15,8 @@ class Settings(MainConf):
     port: int = Field(..., env='PORT_USERS_ANALYZE')
     host_auth: str = Field(..., env='HOST_AUTH')
     port_auth: int = Field(..., env='PORT_AUTH')
+    host_content: str = Field(..., env='HOST_CONTENT')
+    port_content: int = Field(..., env='PORT_CONTENT')
 
 
 settings = Settings()
