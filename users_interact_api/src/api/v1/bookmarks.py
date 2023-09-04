@@ -73,7 +73,8 @@ async def delete_document_bookmarks(
     header = {'Authorization': f'Bearer {token}'}
     user_id = await get_api_helper(url, header)
 
-    bookmark_document = {'user_id': user_id['id'], 'movie_id': bookmark.movie_id}
+    bookmark_document = {'user_id': user_id['id'],
+                         'movie_id': bookmark.movie_id}
     res = await delete_data(mongo,
                             BookmarksResponseModel(**bookmark_document),
                             collection)

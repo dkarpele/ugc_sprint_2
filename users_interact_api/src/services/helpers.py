@@ -4,7 +4,7 @@ from starlette import status as st
 
 
 async def get_api_helper(url: str,
-                         header: dict = None) -> dict:
+                         header: dict | None = None) -> dict:
     try:
         async with aiohttp.ClientSession(headers=header) as session:
             async with session.get(url=url) as response:
